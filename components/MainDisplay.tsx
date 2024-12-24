@@ -265,9 +265,10 @@ export const MainDisplay: FC = () => {
 
     // customAmount
     const debouncedAmountSend = async (value: string, type: string) => {
-        console.log('debounced', value, type)
+        setAmount("")
         let tempAmount = value?.indexOf('U') !== -1 ? parseFloat(value.replace('U', '')) : +value
-        if (chainType === 'solana') {
+
+        if (chainType === 'solana' && tempAmount>0) {
             if (type === 'SOL') {
                 setLoadingSol(true)
                 const swapAmount = await fetchSolSwapResponse(tempAmount);
