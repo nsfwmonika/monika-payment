@@ -123,10 +123,10 @@ export const MainDisplay: FC = () => {
         //     setUsdtBalance(null);
         // }
     };
+
     const onTransactionStatusTON = (status: boolean) => {
         fetchTonBalance(walletAddress)
     }
-
 
     const fetchBalanceSOLANA = useCallback(async () => {
         try {
@@ -154,10 +154,6 @@ export const MainDisplay: FC = () => {
     }, [connection, publicKey, USDC_MINT]);
 
     const onTransactionStatusSOLANA = (status: boolean) => {
-        // if (status) {
-        //     setAmount('')
-        //     setCustomAmount('')
-        // }
         fetchBalanceSOLANA()
     }
 
@@ -263,7 +259,6 @@ export const MainDisplay: FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // customAmount
     const debouncedAmountSend = async (value: string, type: string) => {
         setAmount("")
         let tempAmount = value?.indexOf('U') !== -1 ? parseFloat(value.replace('U', '')) : +value

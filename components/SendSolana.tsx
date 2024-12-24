@@ -51,24 +51,6 @@ const SendSolana: React.FC<SendProps> = ({
     return connection.rpcEndpoint.includes('mainnet-beta');
   }
 
-  // const transferActivation = (chain: string) => {
-  //   const walletAddress = publicKey?.toBase58() || '';
-  //   const queryParams = new URLSearchParams(window.location.search);
-  //   const sid = queryParams.get('sid') || null;
-
-  //   const parameter = {
-  //     sid,
-  //     chain,
-  //     wallet_address: walletAddress,
-  //   }
-  //   axios.post(process.env.NEXT_PUBLIC_WEBAPI + '/payment/active', parameter)
-  //     .then(response => {
-  //       console.log('transferActivation:', response)
-  //     })
-  //     .catch(error => {
-  //       console.log(`transferActivation error: ${error.message}`)
-  //     })
-  // }
   const transferSuccessful = (chain: string, hash: string,) => {
     const walletAddress = publicKey?.toBase58() || '';
     const queryParams = new URLSearchParams(window.location.search);
