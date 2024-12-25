@@ -16,6 +16,28 @@ import Notification from './Notification';
 type SeverityType = 'success' | 'info' | 'warning' | 'error';
 
 export const MainDisplay: FC = () => {
+    const NEXT_PUBLIC_TON_RPC_MAINNET = process.env.NEXT_PUBLIC_TON_RPC_MAINNET
+    const NEXT_PUBLIC_TON_RPC_DEVNET = process.env.NEXT_PUBLIC_TON_RPC_DEVNET
+
+    const tonRPC = useMemo(() => {
+        let networkFromStorage: string | null = null;
+        if (typeof window !== 'undefined') {
+          try {
+            networkFromStorage = localStorage.getItem("network");
+          } catch (error) {
+            console.error("localStorage error:", error);
+          }
+        }
+        let endpoint: string;
+        
+        if( networkFromStorage === "testnet") {
+          endpoint = NEXT_PUBLIC_TON_RPC_DEVNET
+        }else {
+          endpoint = NEXT_PUBLIC_TON_RPC_MAINNET
+        }
+        return endpoint;
+      }, []);
+
     const timerRef = useRef<NodeJS.Timeout>();
     const USDC_MINT = useMemo(() => new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT), []);
     const tokenOptions = [{
@@ -95,7 +117,7 @@ export const MainDisplay: FC = () => {
     const fetchTonBalance = async (address: string) => {
         try {
             const client = new TonClient({
-                endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+                endpoint: tonRPC,
             });
             const balance = await client.getBalance(Address.parse(address));
             let val = (Number(balance) / 1e9).toFixed(2)
@@ -178,7 +200,7 @@ export const MainDisplay: FC = () => {
         }
 
         if (publicKey) {
-            activation('sol', publicKey?.toBase58() || '')
+            // activation('sol', publicKey?.toBase58() || '')
         }
 
         const isConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');

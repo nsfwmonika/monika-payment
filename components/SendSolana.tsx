@@ -111,6 +111,8 @@ const SendSolana: React.FC<SendProps> = ({
             handleNotificationOpen('transaction', 'Successful trade!', 'success');
             onTransactionStatusSOLANA(true)
             transferSuccessful('solana', sig)
+          }).catch(error =>{
+            setLoading(false)
           });
         }
         if (balanceUsdc > 0) {
