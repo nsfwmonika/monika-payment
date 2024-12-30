@@ -98,7 +98,7 @@ const SendSolana: React.FC<SendProps> = ({
           const sendSolInstruction = web3.SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: recipientPubKey,
-            lamports: LAMPORTS_PER_SOL * Number(amount),
+            lamports: BigInt(Math.floor(Number(amount) * LAMPORTS_PER_SOL))
           });
           transaction.add(sendSolInstruction);
           
