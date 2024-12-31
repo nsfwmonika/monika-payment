@@ -49,7 +49,8 @@ export const Header: FC = () => {
   return (
     <div className="page-header">
       <WalletConnectionManager />
-      <span className="logo">Monika Al</span>
+      <span className="logo" style={{
+      }}>Monika Al</span>
       <div className="flex items-center gap-4">
 
         <FormControl size="small" sx={{ minWidth: 120 }}>

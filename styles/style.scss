@@ -8,6 +8,12 @@ body {
     background: #151515;
 }
 
+@media screen and (max-width: 767px) {
+    .logo {
+        font-size: 20px !important;
+    }
+}
+
 .balance-box {
     padding: 16px 22px;
     border-radius: 20px;
@@ -134,5 +140,13 @@ body {
         .MuiButtonGroup-middleButton {
             border-color: #4e4e4e;
         }
+    }
+}
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }
