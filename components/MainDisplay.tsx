@@ -203,7 +203,7 @@ export const MainDisplay: FC = () => {
         }
 
         if (publicKey) {
-            activation('sol', publicKey?.toBase58() || '')
+            // activation('sol', publicKey?.toBase58() || '')
         }
 
         const isConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
