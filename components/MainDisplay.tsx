@@ -39,7 +39,7 @@ export const MainDisplay: FC = () => {
             endpoint = NEXT_PUBLIC_TON_RPC_MAINNET
         }
         return endpoint;
-    }, []);
+    }, [NEXT_PUBLIC_TON_RPC_DEVNET, NEXT_PUBLIC_TON_RPC_MAINNET]);
 
     const timerRef = useRef<NodeJS.Timeout>();
     const USDC_MINT = useMemo(() => new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT), []);
@@ -98,12 +98,9 @@ export const MainDisplay: FC = () => {
 
     const [isInspect, setIsInspect] = useState(false);
     const [svgAnimation, setSvgAnimation] = useState(false);
-    
-    // const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
     const [selectedUnit, setSelectedUnit] = useState("50U");
 
     
-
     useEffect(() => {
         // console.log('Ton wallet info:', walletTon);
         setTokenType(walletTon ? 'TON' : 'SOL')
