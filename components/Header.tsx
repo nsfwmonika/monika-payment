@@ -53,7 +53,7 @@ export const Header: FC = () => {
       }}>Monika Al</span>
       <div className="flex items-center gap-4">
 
-        <FormControl size="small" sx={{ minWidth: 106 }}>
+        {/* <FormControl size="small" sx={{ minWidth: 106 }}>
           <Select
             value={network}
             onChange={handleNetworkChange}
@@ -73,7 +73,7 @@ export const Header: FC = () => {
             <MenuItem value="mainnet">Mainnet</MenuItem>
             <MenuItem value="testnet">Devnet</MenuItem>
           </Select>
-        </FormControl>
+        </FormControl> */}
 
         {isInTelegram === '1' && <TonConnectButton className="my-button-class" />}
         {isInTelegram === '2' && <WalletMultiButtonDynamic />}
