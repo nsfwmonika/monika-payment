@@ -53,7 +53,7 @@ export const Header: FC = () => {
       }}>Monika Al</span>
       <div className="flex items-center gap-4">
 
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 106 }}>
           <Select
             value={network}
             onChange={handleNetworkChange}
@@ -64,7 +64,9 @@ export const Header: FC = () => {
               color: "#ffffff",
               borderRadius: "24px",
               '& .MuiSelect-select': {
-                padding: '8px 14px',
+                padding: '8px 10px',
+                paddingRight:"2px !important",
+                fontSize:"14px"
               }
             }}
           >
