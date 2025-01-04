@@ -10,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import { fetchSolSwapResponse, transferActivation } from '../utils/utils';
 import { Box, TextField, Select, MenuItem, Dialog, DialogTitle, DialogContentText, DialogContent, DialogActions, Button } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
+import { useTelegramWebApp } from '../hooks/useTelegramWebApp'
+
 
 import SendSolana from './SendSolana';
 import SendTon from './SendTon';
@@ -21,7 +23,7 @@ type SeverityType = 'success' | 'info' | 'warning' | 'error';
 export const MainDisplay: FC = () => {
     const NEXT_PUBLIC_TON_RPC_MAINNET = process.env.NEXT_PUBLIC_TON_RPC_MAINNET
     const NEXT_PUBLIC_TON_RPC_DEVNET = process.env.NEXT_PUBLIC_TON_RPC_DEVNET
-    
+
     const tonRPC = useMemo(() => {
         let networkFromStorage: string | null = null;
         if (typeof window !== 'undefined') {
@@ -72,6 +74,9 @@ export const MainDisplay: FC = () => {
         second: false,
         third: false,
     });
+    const [isInTelegram, setIsInTelegram] = useState('0')
+    const isTelegramLoaded = useTelegramWebApp()
+
 
     const walletTon = useTonWallet();
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -100,7 +105,25 @@ export const MainDisplay: FC = () => {
     const [svgAnimation, setSvgAnimation] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState("50U");
 
-    
+    useEffect(() => {
+        setTimeout(() => {
+            try {
+                console.log("Main:",window?.Telegram?.WebApp?.platform)
+                if (window?.Telegram?.WebApp?.platform === 'tdesktop') {
+                    setTokenType("TON")
+                    setChainType("ton")
+
+                } else {
+                    setTokenType("SOL")
+                    setChainType("solana")
+                }
+            } catch (error) {
+                setTokenType("TON")
+                setChainType("ton")
+            }
+        }, 800)
+    }, [isTelegramLoaded])
+
     useEffect(() => {
         // console.log('Ton wallet info:', walletTon);
         setTokenType(walletTon ? 'TON' : 'SOL')
@@ -497,16 +520,16 @@ export const MainDisplay: FC = () => {
                             alignItems: "flex-end"
                         }}>
                             <div style={{
-                                display:"flex",
-                                alignItems:"center",
+                                display: "flex",
+                                alignItems: "center",
                                 color: '#ffffff'
                             }}>
                                 {
-                                    svgAnimation?
-                                    <svg style={{
-                                        animation: "rotate 1s linear infinite",
-                                    }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
-                                :""    
+                                    svgAnimation ?
+                                        <svg style={{
+                                            animation: "rotate 1s linear infinite",
+                                        }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
+                                        : ""
                                 }
                                 {amount}
                             </div>
@@ -518,7 +541,7 @@ export const MainDisplay: FC = () => {
                         border: "1px solid #4e4e4e",
                         borderRadius: "14px",
                         color: "#bfbfc3",
-                        display:"none"
+                        display: "none"
                     }}>
 
                         <div style={{
