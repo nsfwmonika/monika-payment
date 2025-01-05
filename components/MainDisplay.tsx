@@ -108,24 +108,26 @@ export const MainDisplay: FC = () => {
     useEffect(() => {
         setTimeout(() => {
             try {
-                console.log("Main:",window?.Telegram?.WebApp?.platform)
+                console.log("Main:", window?.Telegram?.WebApp?.platform)
                 if (window?.Telegram?.WebApp?.platform === 'tdesktop') {
                     setTokenType("TON")
                     setChainType("ton")
+                    setAmount("1")
 
                 } else {
                     setTokenType("SOL")
                     setChainType("solana")
+                    handleUnitSelect("50U")
                 }
             } catch (error) {
-                setTokenType("TON")
-                setChainType("ton")
+                setTokenType("SOL")
+                setChainType("solana")
+                handleUnitSelect("50U")
             }
         }, 800)
     }, [isTelegramLoaded])
 
     useEffect(() => {
-        // console.log('Ton wallet info:', walletTon);
         setTokenType(walletTon ? 'TON' : 'SOL')
         setChainType(walletTon ? 'ton' : 'solana')
         if (walletTon) {
@@ -284,16 +286,18 @@ export const MainDisplay: FC = () => {
             } else {
                 setLoadingSol(true)
                 const swapAmount = await fetchSolSwapResponse(val);
+                setSvgAnimation(false)
+
                 if (swapAmount !== null) {
                     setAmount(String(swapAmount));
                 }
-
                 setLoadingSol(false)
             }
         } else {
             setAmount(String(val));
+            setSvgAnimation(false)
+
         }
-        setSvgAnimation(false)
     };
 
 
@@ -314,9 +318,13 @@ export const MainDisplay: FC = () => {
         if (chainType === 'solana' && tempAmount > 0) {
             if (type === 'SOL') {
                 setLoadingSol(true)
+                setSvgAnimation(true)
+
                 const swapAmount = await fetchSolSwapResponse(tempAmount);
                 setAmount(String(swapAmount))
                 setLoadingSol(false)
+                setSvgAnimation(false)
+
             } else {
                 setAmount(String(tempAmount))
             }
@@ -328,6 +336,10 @@ export const MainDisplay: FC = () => {
         setSelectedUnit(null);
         debouncedAmount(event.target.value, tokenType)
     };
+
+    const handleTonInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAmount(event.target.value)
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === '.' || e.key === ',') {
@@ -351,7 +363,7 @@ export const MainDisplay: FC = () => {
         }
     };
     useEffect(() => {
-        handleUnitSelect("50U")
+
         return () => {
             if (timerRef.current) {
                 clearTimeout(timerRef.current);
@@ -359,10 +371,7 @@ export const MainDisplay: FC = () => {
         };
     }, []);
 
-
-
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-
     const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -398,47 +407,50 @@ export const MainDisplay: FC = () => {
                             </Box>
                         </div> : ''
                 }
-                <div className="gr-item">
-                    <div className="lable">
-                        <span>Custom Quantity</span>
-                    </div>
-                    <div className='input'>
-                        <TextField
-                            value={customAmount}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            onPaste={handlePaste}
-                            variant="outlined"
-                            placeholder="0"
-                            autoComplete="off"
-                            sx={{
-                                marginTop: '8px',
-                                width: '100%',
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '12px',
-                                    background: '#121214',
-                                    '& fieldset': {
-                                        borderColor: '#4e4e4e',
-                                    },
-                                    '&:hover fieldset': {
-                                        borderColor: '#da842d',
-                                    },
-                                    '&.Mui-focused fieldset': {
-                                        borderColor: '#da842d',
-                                    },
-                                    '& input': {
-                                        textAlign: 'left',
-                                        color: '#ffffff',
-                                    },
-                                    '& input::placeholder': {
-                                        color: '#bfbfc3',
-                                        opacity: 0.7,
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-                </div>
+                {
+                    chainType === 'solana' ?
+                        <div className="gr-item">
+                            <div className="lable">
+                                <span>Custom Quantity</span>
+                            </div>
+                            <div className='input'>
+                                <TextField
+                                    value={customAmount}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    onPaste={handlePaste}
+                                    variant="outlined"
+                                    placeholder="0"
+                                    autoComplete="off"
+                                    sx={{
+                                        marginTop: '8px',
+                                        width: '100%',
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px',
+                                            background: '#121214',
+                                            '& fieldset': {
+                                                borderColor: '#4e4e4e',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: '#da842d',
+                                            },
+                                            '&.Mui-focused fieldset': {
+                                                borderColor: '#da842d',
+                                            },
+                                            '& input': {
+                                                textAlign: 'left',
+                                                color: '#ffffff',
+                                            },
+                                            '& input::placeholder': {
+                                                color: '#bfbfc3',
+                                                opacity: 0.7,
+                                            },
+                                        },
+                                    }}
+                                />
+                            </div>
+                        </div> : ""
+                }
 
                 <div className='gr-item'>
                     <div className="lable">
@@ -455,7 +467,9 @@ export const MainDisplay: FC = () => {
                             }
                         </div>
                     </div>
-                    <div className='groud-select'>
+                    <div className='groud-select' style={{
+                        paddingRight: "0"
+                    }}>
                         <Select
                             value={tokenType}
                             onChange={(event) => handleChange(event.target.value as string)}
@@ -495,7 +509,6 @@ export const MainDisplay: FC = () => {
                                             </div>
                                         </MenuItem>
                                     )) :
-
                                     tokenOptions.map((option) => (
                                         <MenuItem key={option.value} value={option.value}>
                                             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -513,27 +526,76 @@ export const MainDisplay: FC = () => {
                                     ))
                             }
                         </Select>
-                        <div style={{
-                            flex: "1",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end"
-                        }}>
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                color: '#ffffff'
-                            }}>
-                                {
-                                    svgAnimation ?
-                                        <svg style={{
-                                            animation: "rotate 1s linear infinite",
-                                        }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
-                                        : ""
-                                }
-                                {amount}
-                            </div>
-                        </div>
+                        {
+                            chainType === 'ton' ?
+                                <div className='input' style={{
+                                    width: '100%',
+                                }}>
+                                    <TextField
+                                        value={amount}
+                                        onChange={handleTonInputChange}
+                                        // onKeyDown={handleKeyDown}
+                                        // onPaste={handlePaste}
+                                        // variant="outlined"
+                                        placeholder="0"
+                                        // autoComplete="off"
+                                        sx={{
+                                            width: '100%',
+                                            border: "none !important",
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '12px',
+                                                background: '#121214',
+                                                border: "none !important",
+                                                '& fieldset': {
+                                                    borderColor: '#4e4e4e',
+                                                    border: "none !important",
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: '#da842d',
+                                                    border: "none !important",
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#da842d',
+                                                    border: "none !important",
+                                                },
+                                                '& input': {
+                                                    textAlign: 'right',
+                                                    color: '#ffffff',
+                                                    border: "none !important",
+                                                },
+                                                '& input::placeholder': {
+                                                    color: '#bfbfc3',
+                                                    opacity: 0.7,
+                                                    border: "none !important",
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </div> :
+                                <div style={{
+                                    flex: "1",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end"
+                                }}>
+                                    <div style={{
+                                        paddingRight: "16px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: '#ffffff'
+                                    }}>
+                                        {
+                                            svgAnimation ?
+                                                <svg style={{
+                                                    animation: "rotate 1s linear infinite",
+                                                }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
+                                                : ""
+                                        }
+                                        {amount}
+                                    </div>
+                                </div>
+                        }
+
                     </div>
                     <div style={{
                         padding: "10px 15px",
