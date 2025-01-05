@@ -36,7 +36,7 @@ export const Header: FC = () => {
       } catch (error) {
         setIsInTelegram('1')
       }
-    }, 800)
+    }, 500)
   }, [isTelegramLoaded])
 
   const handleNetworkChange = (event: SelectChangeEvent<NetworkType>) => {

@@ -124,7 +124,7 @@ export const MainDisplay: FC = () => {
                 setChainType("solana")
                 handleUnitSelect("50U")
             }
-        }, 800)
+        }, 500)
     }, [isTelegramLoaded])
 
     useEffect(() => {
