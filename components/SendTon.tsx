@@ -71,10 +71,10 @@ const SendTon: React.FC<SendProps> = ({
   }
 
   const handleTransfer = async () => {
-    if (!wallet) {
-      handleNotificationOpen('transaction', 'Wallet not connected!', 'warning');
-      return;
-    }
+    // if (!wallet) {
+    //   handleNotificationOpen('transaction', 'Wallet not connected!', 'warning');
+    //   return;
+    // }
 
     try {
       let tx: SendTransactionRequest;

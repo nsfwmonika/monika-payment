@@ -3,7 +3,7 @@ import { Button, ButtonGroup } from '@mui/material';
 
 interface UnitSelectorProps {
   selectedUnit: string | null;
-  onUnitSelect: (unit: string) => void;
+  onUnitSelect: (unit: string,type: string) => void;
   disabled: boolean;
 }
 
@@ -22,7 +22,7 @@ const UnitSelector: React.FC<UnitSelectorProps> = ({ selectedUnit, onUnitSelect,
       {units.map((unit) => (
         <Button
           key={unit}
-          onClick={() => onUnitSelect(unit)}
+          onClick={() => onUnitSelect(unit,"")}
           disabled={disabled}
           sx={{
             flex:'1',

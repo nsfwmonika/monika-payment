@@ -5,8 +5,6 @@ import { PublicKey, LAMPORTS_PER_SOL, Connection, clusterApiUrl } from '@solana/
 import { useTonWallet } from "@tonconnect/ui-react";
 import { TonClient, Address, beginCell, toNano } from '@ton/ton';
 import Link from "next/link";
-import axios from 'axios';
-
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
 import { fetchSolSwapResponse, transferActivation } from '../utils/utils';
@@ -85,7 +83,7 @@ export const MainDisplay: FC = () => {
     const [usdtBalance, setUsdtBalance] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
-    const [chainType, setChainType] = useState('');
+    const [chainType, setChainType] = useState('solana');
     const [severityType, setSeverity] = useState<SeverityType>('info');
     const [messages, setMessages] = useState('');
 
@@ -113,18 +111,17 @@ export const MainDisplay: FC = () => {
                 setTokenType("TON")
                 setChainType("ton")
                 setAmount("1")
-                handleUnitSelect("50U","ton")
             } else {
                 setTokenType("SOL")
                 setChainType("solana")
-                handleUnitSelect("50U","solana")
+                handleUnitSelect("50U")
             }
         } catch (error) {
             setTokenType("SOL")
             setChainType("solana")
+            handleUnitSelect("50U")
         }
-        // }, [isTelegramLoaded])
-    }, [])
+    }, [isTelegramLoaded])
 
     useEffect(() => {
         if (walletTon) {
@@ -149,29 +146,32 @@ export const MainDisplay: FC = () => {
             setTonBalance(null);
         }
         // GET TON Chain USDT balance
-        // try {
-        //     const client = new TonClient({
-        //         endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-        //     });
-        //     const userAddress = Address.parse(walletAddress || "");
-        //     const addressCell = beginCell().storeAddress(userAddress).endCell();
-        //     const { stack } = await client.runMethod(USDT_ADDRESS, 'get_wallet_data', [{
-        //         type: 'cell',
-        //         cell: addressCell
-        //     }]);
-        //     console.log('stack---', stack)
-        //     // if (stack.length > 0) {
-        //     //     const balance = stack[0];
-        //     //     const val = (Number(balance) / 1e6).toFixed(2);
-        //     //     setUsdtBalance(val);
-        //     // } else {
-        //     //     setUsdtBalance('0.00');
-        //     // }
-        // } catch (error) {
-        //     console.error('Error fetching USDT balance:', error);
-        //     setUsdtBalance(null);
-        // } finally {
-        // }
+        try {
+            const client = new TonClient({
+                endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+            });
+
+            const userAddress = Address.parse(walletAddress || '');
+            const addressCell = beginCell().storeAddress(userAddress).endCell();
+
+            const { stack } = await client.runMethod(USDT_ADDRESS, 'get_wallet_data', [{
+                type: 'cell',
+                cell: addressCell
+            }]);
+            console.log('stack---', stack)
+
+            // if (stack.length > 0) {
+            //     const balance = stack[0];
+            //     const val = (Number(balance) / 1e6).toFixed(2);
+            //     setUsdtBalance(val);
+            // } else {
+            //     setUsdtBalance('0.00');
+            // }
+        } catch (error) {
+            console.error('Error fetching USDT balance:', error);
+            setUsdtBalance(null);
+        } finally {
+        }
     };
 
     const onTransactionStatusTON = (status: boolean) => {
@@ -284,13 +284,13 @@ export const MainDisplay: FC = () => {
         setNotificationOpen((prev) => ({ ...prev, [key]: false }));
     };
 
-    const handleUnitSelect = async (unit: string, type: string) => {
+    const handleUnitSelect = async (unit: string) => {
         setSelectedUnit(unit);
         setAmount('')
         let val = parseFloat(unit.replace('U', ''));
         setCustomAmount(String(val))
         setSvgAnimation(true)
-        if (chainType === 'solana' || type === 'solana') {
+        if (chainType === 'solana') {
             if (tokenType !== 'SOL') {
                 setAmount(String(val));
             } else {
@@ -304,35 +304,28 @@ export const MainDisplay: FC = () => {
                 setLoadingSol(false)
             }
         } else {
-            setLoadingSol(true)
-            const response = await axios.get("https://tonapi.io/v2/rates?tokens=ton&currencies=ton%2Cusd%2Crub");
-            if (response.status === 200) {
-                let usdtPrices = response.data.rates
-                usdtPrices = usdtPrices.TON.prices.USD
+            setAmount(String(val));
+            setSvgAnimation(false)
 
-                setAmount(String((Number(val) / usdtPrices).toFixed(6)));
-                setSvgAnimation(false)
-                setLoadingSol(false)
-            }
         }
     };
 
 
-    const debouncedAmount = useCallback((value: string,isChainType:string, type: string) => {
+    const debouncedAmount = useCallback((value: string, type: string) => {
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
-
         timerRef.current = setTimeout(() => {
-            debouncedAmountSend(value, isChainType, type);
+            debouncedAmountSend(value, type);
         }, 500);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedAmountSend = async (value: string,isChainType:string, type: string) => {
+    const debouncedAmountSend = async (value: string, type: string) => {
         setAmount("")
         let tempAmount = value?.indexOf('U') !== -1 ? parseFloat(value.replace('U', '')) : +value
-        if (isChainType === 'solana' && tempAmount > 0) {
+
+        if (chainType === 'solana' && tempAmount > 0) {
             if (type === 'SOL') {
                 setLoadingSol(true)
                 setSvgAnimation(true)
@@ -341,19 +334,9 @@ export const MainDisplay: FC = () => {
                 setAmount(String(swapAmount))
                 setLoadingSol(false)
                 setSvgAnimation(false)
+
             } else {
                 setAmount(String(tempAmount))
-            }
-        } else if (isChainType === 'ton') {
-            setLoadingSol(true)
-            setSvgAnimation(true)
-            const response = await axios.get("https://tonapi.io/v2/rates?tokens=ton&currencies=ton%2Cusd%2Crub");
-            if (response.status === 200) {
-                let usdtPrices = response.data.rates
-                usdtPrices = usdtPrices.TON.prices.USD
-                setAmount(String((Number(tempAmount) / usdtPrices).toFixed(6)));
-                setSvgAnimation(false)
-                setLoadingSol(false)
             }
         }
     }
@@ -361,9 +344,12 @@ export const MainDisplay: FC = () => {
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCustomAmount(event.target.value)
         setSelectedUnit("");
-        debouncedAmount(event.target.value, chainType,tokenType)
+        debouncedAmount(event.target.value, tokenType)
     };
 
+    const handleTonInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAmount(event.target.value)
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === '.' || e.key === ',') {
@@ -416,59 +402,65 @@ export const MainDisplay: FC = () => {
             />
             <div className='send-main'>
                 <p className="title">Send</p>
-                <div>
-                    <div className="lable">
-                        <span>Level</span>
-                    </div>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 2 }}>
-                        <UnitSelector
-                            selectedUnit={selectedUnit}
-                            onUnitSelect={handleUnitSelect}
-                            disabled={false}
-                        />
-                    </Box>
-                </div>
-                <div className="gr-item">
-                    <div className="lable">
-                        <span>Custom Quantity</span>
-                    </div>
-                    <div className='input'>
-                        <TextField
-                            value={customAmount}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            onPaste={handlePaste}
-                            variant="outlined"
-                            placeholder="0"
-                            autoComplete="off"
-                            sx={{
-                                marginTop: '8px',
-                                width: '100%',
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '12px',
-                                    background: '#121214',
-                                    '& fieldset': {
-                                        borderColor: '#4e4e4e',
-                                    },
-                                    '&:hover fieldset': {
-                                        borderColor: '#da842d',
-                                    },
-                                    '&.Mui-focused fieldset': {
-                                        borderColor: '#da842d',
-                                    },
-                                    '& input': {
-                                        textAlign: 'left',
-                                        color: '#ffffff',
-                                    },
-                                    '& input::placeholder': {
-                                        color: '#bfbfc3',
-                                        opacity: 0.7,
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-                </div>
+                {
+                    chainType === 'solana' ?
+                        <div>
+                            <div className="lable">
+                                <span>Level</span>
+                            </div>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 2 }}>
+                                <UnitSelector
+                                    selectedUnit={selectedUnit}
+                                    onUnitSelect={handleUnitSelect}
+                                    disabled={false}
+                                />
+                            </Box>
+                        </div> : ''
+                }
+                {
+                    chainType === 'solana' ?
+                        <div className="gr-item">
+                            <div className="lable">
+                                <span>Custom Quantity</span>
+                            </div>
+                            <div className='input'>
+                                <TextField
+                                    value={customAmount}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    onPaste={handlePaste}
+                                    variant="outlined"
+                                    placeholder="0"
+                                    autoComplete="off"
+                                    sx={{
+                                        marginTop: '8px',
+                                        width: '100%',
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px',
+                                            background: '#121214',
+                                            '& fieldset': {
+                                                borderColor: '#4e4e4e',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: '#da842d',
+                                            },
+                                            '&.Mui-focused fieldset': {
+                                                borderColor: '#da842d',
+                                            },
+                                            '& input': {
+                                                textAlign: 'left',
+                                                color: '#ffffff',
+                                            },
+                                            '& input::placeholder': {
+                                                color: '#bfbfc3',
+                                                opacity: 0.7,
+                                            },
+                                        },
+                                    }}
+                                />
+                            </div>
+                        </div> : ""
+                }
 
                 <div className='gr-item'>
                     <div className="lable">
@@ -544,28 +536,75 @@ export const MainDisplay: FC = () => {
                                     ))
                             }
                         </Select>
-                        <div style={{
-                            flex: "1",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end"
-                        }}>
-                            <div style={{
-                                paddingRight: "16px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: '#ffffff'
-                            }}>
-                                {
-                                    svgAnimation ?
-                                        <svg style={{
-                                            animation: "rotate 1s linear infinite",
-                                        }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
-                                        : ""
-                                }
-                                {amount}
-                            </div>
-                        </div>
+                        {
+                            chainType === 'ton' ?
+                                <div className='input' style={{
+                                    width: '100%',
+                                }}>
+                                    <TextField
+                                        value={amount}
+                                        onChange={handleTonInputChange}
+                                        // onKeyDown={handleKeyDown}
+                                        // onPaste={handlePaste}
+                                        // variant="outlined"
+                                        placeholder="0"
+                                        // autoComplete="off"
+                                        sx={{
+                                            width: '100%',
+                                            border: "none !important",
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '12px',
+                                                background: '#121214',
+                                                border: "none !important",
+                                                '& fieldset': {
+                                                    borderColor: '#4e4e4e',
+                                                    border: "none !important",
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: '#da842d',
+                                                    border: "none !important",
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#da842d',
+                                                    border: "none !important",
+                                                },
+                                                '& input': {
+                                                    textAlign: 'right',
+                                                    color: '#ffffff',
+                                                    border: "none !important",
+                                                },
+                                                '& input::placeholder': {
+                                                    color: '#bfbfc3',
+                                                    opacity: 0.7,
+                                                    border: "none !important",
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </div> :
+                                <div style={{
+                                    flex: "1",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end"
+                                }}>
+                                    <div style={{
+                                        paddingRight: "16px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: '#ffffff'
+                                    }}>
+                                        {
+                                            svgAnimation ?
+                                                <svg style={{
+                                                    animation: "rotate 1s linear infinite",
+                                                }} className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4480" width="18" height="18"><path d="M64 512a448 448 0 1 0 448-448 32 32 0 0 0 0 64 384 384 0 1 1-384 384 32 32 0 0 0-64 0z" fill="#ff842d" p-id="4481"></path></svg>
+                                                : ""
+                                        }
+                                        {amount}
+                                    </div>
+                                </div>
+                        }
 
                     </div>
                     <div style={{
