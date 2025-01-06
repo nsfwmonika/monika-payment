@@ -6,13 +6,10 @@ import { useTonWallet } from "@tonconnect/ui-react";
 import { TonClient, Address, beginCell, toNano } from '@ton/ton';
 import Link from "next/link";
 import axios from 'axios';
-
-import Popover from '@mui/material/Popover';
-import Typography from '@mui/material/Typography';
 import { fetchSolSwapResponse, transferActivation } from '../utils/utils';
 import { Box, TextField, Select, MenuItem, Dialog, DialogTitle, DialogContentText, DialogContent, DialogActions, Button } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { useTelegramWebApp } from '../hooks/useTelegramWebApp'
+import { ExchangeInfos } from './ExchangeInfos'
 
 
 import SendSolana from './SendSolana';
@@ -97,39 +94,63 @@ export const MainDisplay: FC = () => {
 
     const [loadingSol, setLoadingSol] = useState(false);
     const [amount, setAmount] = useState<string>('');
-    const [tokenAmount, setTokenAmoun] = useState<string>('');
     const [customAmount, setCustomAmount] = useState<string>('50');
 
-    const [tokenType, setTokenType] = useState('SOL');
+    const [tokenType, setTokenType] = useState('');
+    const [userFriendlyAddress, setUserFriendlyAddress] = useState("");
 
-    const [isInspect, setIsInspect] = useState(false);
+
     const [svgAnimation, setSvgAnimation] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState("50U");
+    const [exchangeInfo, setExchangeInfo] = useState({
+        basePoints: null,
+        chainPrice: null,
+        level: null,
+        rebatePercentage: null,
+        rewardPoints: null
+    });
+    const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
-        try {
-            const currentPath = window.location;
-            if (currentPath.href.indexOf("solana") === -1) {
-                setTokenType("TON")
-                setChainType("ton")
-                setAmount("1")
-                handleUnitSelect("50U","ton")
-            } else {
-                setTokenType("SOL")
-                setChainType("solana")
-                handleUnitSelect("50U","solana")
+        const initializeTokenType = () => {
+            try {
+                const currentPath = window.location.href;
+                if (currentPath.indexOf("solana") === -1) {
+                    setTokenType("TON");
+                    setChainType("ton");
+                    setAmount("1");
+                    handleUnitSelect("50U", "ton");
+                } else {
+                    setTokenType("SOL");
+                    setChainType("solana");
+                    handleUnitSelect("50U", "solana");
+                }
+            } catch (error) {
+                setTokenType("SOL");
+                setChainType("solana");
             }
-        } catch (error) {
-            setTokenType("SOL")
-            setChainType("solana")
-        }
-        // }, [isTelegramLoaded])
+        };
+        initializeTokenType();
     }, [])
+    useEffect(() => {
+        tokenTypeRef.current = tokenType;
+    }, [tokenType]);
 
     useEffect(() => {
         if (walletTon) {
             setWalletAddress(walletTon.account.address);
             fetchTonBalance(walletTon.account.address);
+            try {
+                const address = Address.parse(walletTon.account.address);
+                const friendlyAddress = address.toString({
+                    urlSafe: true,
+                    bounceable: false,
+                    testOnly: false
+                });
+                setUserFriendlyAddress(friendlyAddress)
+            } catch (error) {
+            }
+
         } else {
             setWalletAddress(null);
             setTonBalance(null);
@@ -190,7 +211,6 @@ export const MainDisplay: FC = () => {
             const walletBalance = await connection.getBalance(publicKey);
             setSolBalance(walletBalance / LAMPORTS_PER_SOL);
         } catch (error) {
-            console.error('Failed to fetch balance SOL:', error);
             setSolBalance(0);
         }
 
@@ -205,7 +225,6 @@ export const MainDisplay: FC = () => {
             }
 
         } catch (error) {
-            console.error('Failed to fetch balance USDC:', error);
             setUsdcBalance(0);
         }
     }, [connection, publicKey, USDC_MINT]);
@@ -215,43 +234,18 @@ export const MainDisplay: FC = () => {
     }
 
 
-    const activation = async (chain: any, walletAddress: any) => {
-        try {
-            const result = await transferActivation({
-                chain,
-                walletAddress
-            });
-            setOpen(result?.data?.code === 200 ? false : true);
-        } catch (error) {
-            console.error('activation error:', error);
-            setOpen(true);
-        }
-    }
     useEffect(() => {
         if (!connection || !publicKey) {
             setSolBalance(0);
             setLoadingSol(false)
             return;
         }
-
-        if (publicKey) {
-            // activation('sol', publicKey?.toBase58() || '')
-        }
-
         const isConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
         if (!isConnection.rpcEndpoint.includes('mainnet-beta')) {
             handleNotificationOpen('transaction', 'Unsupported network. Please connect to Ethereum or Solana!', 'warning');
-            setIsInspect(true);
             return;
-        } else {
-            setIsInspect(false);
         }
-
         fetchBalanceSOLANA();
-        // // const balanceIntervalId = setInterval(fetchBalanceSOLANA, 10000);
-        // return () => {
-        //     // clearInterval(balanceIntervalId);
-        // };
     }, [connection, publicKey, fetchBalanceSOLANA]);
 
     const handleChange = async (value: string) => {
@@ -261,12 +255,7 @@ export const MainDisplay: FC = () => {
             if (value === 'USDC') {
                 setAmount(customAmount)
             } else {
-                setLoadingSol(true)
-                const swapAmount = await fetchSolSwapResponse(+customAmount);
-                if (swapAmount !== null) {
-                    setAmount(String(swapAmount));
-                }
-                setLoadingSol(false)
+                exchangeResult("solana", publicKey?.toBase58() || '', customAmount, value)
             }
         }
     }
@@ -291,34 +280,51 @@ export const MainDisplay: FC = () => {
         setCustomAmount(String(val))
         setSvgAnimation(true)
         if (chainType === 'solana' || type === 'solana') {
-            if (tokenType !== 'SOL') {
-                setAmount(String(val));
-            } else {
-                setLoadingSol(true)
-                const swapAmount = await fetchSolSwapResponse(val);
-                setSvgAnimation(false)
-
-                if (swapAmount !== null) {
-                    setAmount(String(swapAmount));
-                }
-                setLoadingSol(false)
-            }
+            exchangeResult("solana", publicKey?.toBase58() || '', val, tokenType)
         } else {
             setLoadingSol(true)
-            const response = await axios.get("https://tonapi.io/v2/rates?tokens=ton&currencies=ton%2Cusd%2Crub");
-            if (response.status === 200) {
-                let usdtPrices = response.data.rates
-                usdtPrices = usdtPrices.TON.prices.USD
-
-                setAmount(String((Number(val) / usdtPrices).toFixed(6)));
-                setSvgAnimation(false)
-                setLoadingSol(false)
-            }
+            exchangeResult("ton", walletAddress || '', val, tokenType)
         }
     };
 
+    const exchangeResult = async (chain: any, walletAddress: any, usd: any, tokenType: any) => {
+        setLoadingSol(true)
+        setAmount("")
+        setLoadingSol(true)
+        setSvgAnimation(true)
+        try {
+            const result = await transferActivation({
+                chain,
+                walletAddress:chain === 'ton'?userFriendlyAddress:walletAddress,
+                usd
+            });
+            setSvgAnimation(false)
+            setLoadingSol(false)
+            if (result.success) {
+                let temp = result.data.data
+                if (temp.rewardPoints > 0) {
+                    temp.basePoints = temp.basePoints + temp.rewardPoints
+                }
+                if (temp?.rebatePercentage) {
+                    temp.rebatePercentage = temp.rebatePercentage * 100 + '%'
+                }
 
-    const debouncedAmount = useCallback((value: string,isChainType:string, type: string) => {
+                setExchangeInfo(temp)
+                if (tokenType === "USDC" || tokenType === "USDT") {
+                    setAmount(String(usd));
+                } else {
+                    setAmount(String((Number(usd) / temp.chainPrice).toFixed(9)));
+                }
+            }
+            // setOpen(result?.data?.code === 200 ? false : true);
+        } catch (error) {
+            console.error('activation error:', error);
+            setOpen(true);
+        }
+    }
+
+
+    const debouncedAmount = useCallback((value: string, isChainType: string, type: string) => {
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
@@ -329,39 +335,20 @@ export const MainDisplay: FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedAmountSend = async (value: string,isChainType:string, type: string) => {
+    const debouncedAmountSend = async (value: string, isChainType: string, type: string) => {
         setAmount("")
         let tempAmount = value?.indexOf('U') !== -1 ? parseFloat(value.replace('U', '')) : +value
         if (isChainType === 'solana' && tempAmount > 0) {
-            if (type === 'SOL') {
-                setLoadingSol(true)
-                setSvgAnimation(true)
+            exchangeResult("solana", publicKey?.toBase58() || '', tempAmount, tokenTypeRef.current)
 
-                const swapAmount = await fetchSolSwapResponse(tempAmount);
-                setAmount(String(swapAmount))
-                setLoadingSol(false)
-                setSvgAnimation(false)
-            } else {
-                setAmount(String(tempAmount))
-            }
         } else if (isChainType === 'ton') {
-            setLoadingSol(true)
-            setSvgAnimation(true)
-            const response = await axios.get("https://tonapi.io/v2/rates?tokens=ton&currencies=ton%2Cusd%2Crub");
-            if (response.status === 200) {
-                let usdtPrices = response.data.rates
-                usdtPrices = usdtPrices.TON.prices.USD
-                setAmount(String((Number(tempAmount) / usdtPrices).toFixed(6)));
-                setSvgAnimation(false)
-                setLoadingSol(false)
-            }
+            exchangeResult("ton", walletAddress || '', tempAmount, tokenTypeRef.current)
         }
     }
-
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCustomAmount(event.target.value)
         setSelectedUnit("");
-        debouncedAmount(event.target.value, chainType,tokenType)
+        debouncedAmount(event.target.value, chainType, tokenTypeRef.current)
     };
 
 
@@ -387,24 +374,12 @@ export const MainDisplay: FC = () => {
         }
     };
     useEffect(() => {
-
         return () => {
             if (timerRef.current) {
                 clearTimeout(timerRef.current);
             }
         };
     }, []);
-
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handlePopoverClose = () => {
-        setAnchorEl(null);
-    };
-
-    const openPro = Boolean(anchorEl);
 
     return (
         <div className='sol-main'>
@@ -568,81 +543,7 @@ export const MainDisplay: FC = () => {
                         </div>
 
                     </div>
-                    <div style={{
-                        padding: "10px 15px",
-                        marginTop: "24px",
-                        border: "1px solid #4e4e4e",
-                        borderRadius: "14px",
-                        color: "#bfbfc3",
-                        display: "none"
-                    }}>
-
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                        }}>
-                            <span style={{
-                                display: "flex",
-                            }}>
-                                Received points
-                                <div>
-                                    <Typography
-                                        aria-owns={openPro ? 'mouse-over-popover' : undefined}
-                                        aria-haspopup="true"
-                                        onMouseEnter={handlePopoverOpen}
-                                        onMouseLeave={handlePopoverClose}
-                                    >
-                                        <InfoIcon
-                                            sx={{
-                                                marginLeft: "5px",
-                                                fontSize: 18
-                                            }}
-                                        ></InfoIcon>
-                                    </Typography>
-                                    <Popover
-                                        id="mouse-over-popover"
-                                        sx={{ pointerEvents: 'none' }}
-                                        open={openPro}
-                                        anchorEl={anchorEl}
-                                        anchorOrigin={{
-                                            vertical: 'bottom',
-                                            horizontal: 'left',
-                                        }}
-                                        transformOrigin={{
-                                            vertical: 'top',
-                                            horizontal: 'left',
-                                        }}
-                                        onClose={handlePopoverClose}
-                                        disableRestoreFocus
-                                    >
-                                        <Typography sx={{ p: 1 }}>.</Typography>
-                                    </Popover>
-                                </div>
-
-                            </span>
-                            <span style={{
-                                color: "#4e4e4e"
-                            }}>
-                            </span>
-                        </div>
-                        <div>
-                            <span>
-                                level
-                            </span>
-                            <span style={{
-                                color: "#4e4e4e"
-                            }}>
-                            </span>
-                        </div>
-                        <div>
-                            <span>
-                            </span>
-                            <span style={{
-                                color: "#4e4e4e"
-                            }}>
-                            </span>
-                        </div>
-                    </div>
+                    <ExchangeInfos {...exchangeInfo}></ExchangeInfos>
                 </div>
 
                 <div className='send'>

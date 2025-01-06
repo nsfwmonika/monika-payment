@@ -7,6 +7,7 @@ const USDC_MINT = process.env.NEXT_PUBLIC_USDC_MINT;
 interface TransferActivationParams {
   chain: string;
   walletAddress: string;
+  usd: number;
 }
 interface TransferActivationResponse {
   success: boolean;
@@ -36,7 +37,8 @@ export async function fetchSolSwapResponse(outputMint: string | number): Promise
 
 export async function transferActivation({
   chain,
-  walletAddress
+  walletAddress,
+  usd
 }: TransferActivationParams): Promise<TransferActivationResponse> {
   try {
     const queryParams = new URLSearchParams(window.location.search);
@@ -46,6 +48,7 @@ export async function transferActivation({
       sid,
       chain,
       wallet_address: walletAddress,
+      usd
     };
 
     const response = await axios.post(
@@ -64,3 +67,5 @@ export async function transferActivation({
     };
   }
 }
+
+

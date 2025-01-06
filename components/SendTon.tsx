@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
 import { SendTransactionRequest, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
-import { TonClient } from '@ton/ton';
+import { Address, beginCell, Cell, TonClient } from '@ton/ton';
 import axios from 'axios'
 
 const recipientAddress = process.env.NEXT_PUBLIC_RECIPIENT_TON_WEB
@@ -29,27 +29,26 @@ const SendTon: React.FC<SendProps> = ({
 }) => {
   const wallet = useTonWallet();
   const [tonConnectUi] = useTonConnectUI();
-  
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [tonBalance, setTonBalance] = useState<string | null>(null);
+  const [userFriendlyAddress, setUserFriendlyAddress] = useState("");
 
-  // const transferActivation = () => {
-  //   const queryParams = new URLSearchParams(window.location.search);
-  //   const sid = queryParams.get('sid') || null;
+  useEffect(() => {
+    if (wallet && wallet.account.address) {
+      try {
+        const address = Address.parse(wallet.account.address);
+        const friendlyAddress = address.toString({
+          urlSafe: true,
+          bounceable: false,
+          testOnly: true
+        });
+        setUserFriendlyAddress(friendlyAddress)
+      } catch (error) {
+        console.error('Error parsing wallet address:', error);
+      }
+    }
+  }, [wallet, handleNotificationOpen]);
 
-  //   const parameter = {
-  //     sid,
-  //     chain:'ton',
-  //     wallet_address: wallet?.account.address
-  //   }
-  //   axios.post(process.env.NEXT_PUBLIC_WEBAPI + '/payment/active', parameter)
-  //     .then(response => {
-  //       console.log('transferActivation:', response)
-  //     })
-  //     .catch(error => {
-  //       console.log(`transferActivation error: ${error.message}`)
-  //     })
-  // }
+
+
   const transferSuccessful = (hash: string, usd: number | string) => {
     const queryParams = new URLSearchParams(window.location.search);
     const sid = queryParams.get('sid') || null;
@@ -59,7 +58,7 @@ const SendTon: React.FC<SendProps> = ({
       chain: 'ton',
       hash,
       usd,
-      wallet_address: wallet?.account.address
+      wallet_address: userFriendlyAddress
     }
     axios.post(process.env.NEXT_PUBLIC_WEBAPI + '/payment', parameter)
       .then(response => {
@@ -78,7 +77,6 @@ const SendTon: React.FC<SendProps> = ({
 
     try {
       let tx: SendTransactionRequest;
-      // transferActivation()
       if (tokenType === 'TON') {
         tx = {
           validUntil: Math.floor(Date.now() / 1000) + 600, // term of validity
@@ -103,8 +101,11 @@ const SendTon: React.FC<SendProps> = ({
         };
       }
       const result = await tonConnectUi.sendTransaction(tx);
+
       if (result.boc) {
-        const transactionHash = result.boc;
+        const cell = Cell.fromBoc(Buffer.from(result.boc, 'base64'))[0];
+        const transactionHash = beginCell().storeBuffer(cell.hash()).endCell().beginParse().loadUintBig(256).toString(16);
+        console.log('Friendly transaction hash:', transactionHash);
         transferSuccessful(transactionHash, amount);
       }
       handleNotificationOpen('transaction', 'Successful trade!', 'success');

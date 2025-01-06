@@ -18,7 +18,6 @@ interface SendProps {
   setBalanceUsdc: (balance: number | number) => void;
   handleNotificationOpen: (key: string, message: string, type: 'success' | 'error' | 'warning') => void;
   onTransactionStatusSOLANA: (status: boolean) => void;
-
 }
 
 const SendSolana: React.FC<SendProps> = ({
@@ -75,7 +74,7 @@ const SendSolana: React.FC<SendProps> = ({
     if (!publicKey) {
       console.error('Public key is null');
       return;
-  }
+    }
 
     try {
       const tempBalance = await connection.getBalance(publicKey);
@@ -86,7 +85,6 @@ const SendSolana: React.FC<SendProps> = ({
     }
   };
   const handleTransfer = async () => {
-    
     if (!publicKey) {
       handleNotificationOpen('transaction', 'Wallet not connected!', 'error');
       return;
@@ -97,11 +95,10 @@ const SendSolana: React.FC<SendProps> = ({
       setLoading(true)
       if (!recipientAddress) {
         return;
-    }
+      }
 
       if (detectSolanaNetwork()) {
         if (tokenType === 'SOL') {
-          // transferActivation('solana')
           const transaction = new web3.Transaction();
           const recipientPubKey = new web3.PublicKey(recipientAddress);
           const sendSolInstruction = web3.SystemProgram.transfer({
@@ -110,68 +107,74 @@ const SendSolana: React.FC<SendProps> = ({
             lamports: BigInt(Math.floor(Number(amount) * LAMPORTS_PER_SOL))
           });
           transaction.add(sendSolInstruction);
-          
+
           upBalanceSOL();
 
-          // SOL Transaction Hash
           sendTransaction(transaction, connection).then(async (sig) => {
             setLoading(false)
             console.log('SOL Transaction Hash:', Number(amount), sig);
             handleNotificationOpen('transaction', 'Successful trade!', 'success');
             onTransactionStatusSOLANA(true)
             transferSuccessful('solana', sig)
-          }).catch(error =>{
+          }).catch(error => {
+
             setLoading(false)
           });
         }
+
         if (balanceUsdc > 0) {
           if (tokenType === 'USDC') {
-            const fromTokenAccount = await getAssociatedTokenAddress(
-              USDC_MINT,
-              publicKey
-            );
-            const toTokenAccount = await getAssociatedTokenAddress(
-              USDC_MINT,
-              new PublicKey(recipientAddress)
-            );
-            const transferInstruction = createTransferInstruction(
-              fromTokenAccount,
-              toTokenAccount,
-              publicKey,
-              BigInt(Math.floor(Number(amount) * 1e6))
-            );
+            try {
+              const fromTokenAccount = await getAssociatedTokenAddress(
+                USDC_MINT,
+                publicKey
+              );
+              const toTokenAccount = await getAssociatedTokenAddress(
+                USDC_MINT,
+                new PublicKey(recipientAddress)
+              );
+              const transferInstruction = createTransferInstruction(
+                fromTokenAccount,
+                toTokenAccount,
+                publicKey,
+                BigInt(Math.floor(Number(amount) * 1e6))
+              );
+              setLoading(false)
+              transaction.add(transferInstruction);
 
-            transaction.add(transferInstruction);
+              sendTransaction(transaction, connection).then((sig) => {
+                handleNotificationOpen('transaction', 'Successful trade!', 'success');
+                onTransactionStatusSOLANA(true)
+                transferSuccessful('solana', sig)
 
-            sendTransaction(transaction, connection).then((sig) => {
-              handleNotificationOpen('transaction', 'Successful trade!', 'success');
-              onTransactionStatusSOLANA(true)
-              transferSuccessful('solana', sig)
-
-              const updateUsdcBalance = async () => {
-                try {
-                  const tokenAccounts = await connection.getTokenAccountsByOwner(
-                    publicKey,
-                    { mint: USDC_MINT }
-                  );
-                  if (tokenAccounts.value.length > 0) {
-                    const usdcAccountInfo = await connection.getParsedAccountInfo(tokenAccounts.value[0].pubkey);
-                    if (usdcAccountInfo.value) {
-                      const parsedInfo = usdcAccountInfo.value.data as any;
-                      const usdcBalance = parsedInfo.parsed.info.tokenAmount.uiAmount;
-                      setBalanceUsdc(usdcBalance);
-                      setLoading(false)
+               setLoading(true)
+                const updateUsdcBalance = async () => {
+                  try {
+                    const tokenAccounts = await connection.getTokenAccountsByOwner(
+                      publicKey,
+                      { mint: USDC_MINT }
+                    );
+                    if (tokenAccounts.value.length > 0) {
+                      const usdcAccountInfo = await connection.getParsedAccountInfo(tokenAccounts.value[0].pubkey);
+                      if (usdcAccountInfo.value) {
+                        const parsedInfo = usdcAccountInfo.value.data as any;
+                        const usdcBalance = parsedInfo.parsed.info.tokenAmount.uiAmount;
+                        setBalanceUsdc(usdcBalance);
+                        setLoading(false)
+                      }
                     }
+                  } catch (error) {
+                    setLoading(false)
+
+                    console.error('Failed to update USDC balance:', error);
                   }
-                } catch (error) {
-                  setLoading(false)
+                };
+                updateUsdcBalance();
+              });
 
-                  console.error('Failed to update USDC balance:', error);
-                }
-              };
-              updateUsdcBalance();
-            });
-
+            } catch (error) {
+              console.log('error----', error)
+            }
           }
         }
       } else {
