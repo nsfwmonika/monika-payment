@@ -37,15 +37,15 @@ export const MainDisplay: FC = () => {
         let endpoint: string;
 
         if (networkFromStorage === "testnet") {
-            endpoint = NEXT_PUBLIC_TON_RPC_DEVNET
+            endpoint = NEXT_PUBLIC_TON_RPC_DEVNET || ''
         } else {
-            endpoint = NEXT_PUBLIC_TON_RPC_MAINNET
+            endpoint = NEXT_PUBLIC_TON_RPC_MAINNET || ''
         }
         return endpoint;
     }, [NEXT_PUBLIC_TON_RPC_DEVNET, NEXT_PUBLIC_TON_RPC_MAINNET]);
 
     const timerRef = useRef<NodeJS.Timeout>();
-    const USDC_MINT = useMemo(() => new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT), []);
+    const USDC_MINT = useMemo(() => new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || ''), []);
     const tokenOptions = [{
         value: 'SOL',
         label: 'SOL',
@@ -179,6 +179,13 @@ export const MainDisplay: FC = () => {
     }
 
     const fetchBalanceSOLANA = useCallback(async () => {
+        if (!publicKey) {
+            console.error('Public key is null');
+            setSolBalance(0);
+            setUsdcBalance(0);
+            return;
+        }
+
         try {
             const walletBalance = await connection.getBalance(publicKey);
             setSolBalance(walletBalance / LAMPORTS_PER_SOL);
@@ -208,7 +215,7 @@ export const MainDisplay: FC = () => {
     }
 
 
-    const activation = async (chain, walletAddress) => {
+    const activation = async (chain: any, walletAddress: any) => {
         try {
             const result = await transferActivation({
                 chain,
@@ -336,7 +343,7 @@ export const MainDisplay: FC = () => {
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCustomAmount(event.target.value)
-        setSelectedUnit(null);
+        setSelectedUnit("");
         debouncedAmount(event.target.value, tokenType)
     };
 
