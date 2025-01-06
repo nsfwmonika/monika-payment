@@ -25,18 +25,16 @@ export const Header: FC = () => {
   }, [])
 
   useEffect(() => {
-    setTimeout(() => {
-      try {
-        console.log('window:', window?.Telegram)
-        if (window?.Telegram?.WebApp?.platform === 'tdesktop') {
-          setIsInTelegram('1')
-        } else {
-          setIsInTelegram('2')
-        }
-      } catch (error) {
+    try {
+      const currentPath = window.location;
+      if (currentPath.href.indexOf("solana") === -1) {
         setIsInTelegram('1')
+      } else {
+        setIsInTelegram('2')
       }
-    }, 500)
+    } catch (error) {
+      setIsInTelegram('1')
+    }
   }, [isTelegramLoaded])
 
   const handleNetworkChange = (event: SelectChangeEvent<NetworkType>) => {
@@ -74,7 +72,6 @@ export const Header: FC = () => {
             <MenuItem value="testnet">Devnet</MenuItem>
           </Select>
         </FormControl> */}
-
         {isInTelegram === '1' && <TonConnectButton className="my-button-class" />}
         {isInTelegram === '2' && <WalletMultiButtonDynamic />}
       </div>

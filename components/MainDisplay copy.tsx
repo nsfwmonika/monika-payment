@@ -146,32 +146,34 @@ export const MainDisplay: FC = () => {
             setTonBalance(null);
         }
         // GET TON Chain USDT balance
-        // try {
-        //     const client = new TonClient({
-        //         endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-        //     });
+        try {
+            const client = new TonClient({
+                endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+            });
 
-        //     const userAddress = Address.parse(walletAddress || '');
-        //     const addressCell = beginCell().storeAddress(userAddress).endCell();
+            console.log('walletAddress---', walletAddress)
+            
+            const userAddress = Address.parse(walletAddress || '');
+            const addressCell = beginCell().storeAddress(userAddress).endCell();
 
-        //     const { stack } = await client.runMethod(USDT_ADDRESS, 'get_wallet_data', [{
-        //         type: 'cell',
-        //         cell: addressCell
-        //     }]);
-        //     console.log('stack---', stack)
+            const { stack } = await client.runMethod(USDT_ADDRESS, 'get_wallet_data', [{
+                type: 'cell',
+                cell: addressCell
+            }]);
+            console.log('stack---', stack)
 
-        //     // if (stack.length > 0) {
-        //     //     const balance = stack[0];
-        //     //     const val = (Number(balance) / 1e6).toFixed(2);
-        //     //     setUsdtBalance(val);
-        //     // } else {
-        //     //     setUsdtBalance('0.00');
-        //     // }
-        // } catch (error) {
-        //     console.error('Error fetching USDT balance:', error);
-        //     setUsdtBalance(null);
-        // } finally {
-        // }
+            // if (stack.length > 0) {
+            //     const balance = stack[0];
+            //     const val = (Number(balance) / 1e6).toFixed(2);
+            //     setUsdtBalance(val);
+            // } else {
+            //     setUsdtBalance('0.00');
+            // }
+        } catch (error) {
+            console.error('Error fetching USDT balance:', error);
+            setUsdtBalance(null);
+        } finally {
+        }
     };
 
     const onTransactionStatusTON = (status: boolean) => {
