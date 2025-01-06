@@ -27,9 +27,9 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     let endpoint: string;
     
     if( networkFromStorage === "testnet") {
-      endpoint = devnetRPC
+      endpoint = devnetRPC || ""
     }else {
-      endpoint = mainnetRPC
+      endpoint = mainnetRPC || ""
     }
     return { network, endpoint };
   }, []);

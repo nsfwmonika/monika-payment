@@ -84,7 +84,7 @@ const SendTon: React.FC<SendProps> = ({
           validUntil: Math.floor(Date.now() / 1000) + 600, // term of validity
           messages: [
             {
-              address: recipientAddress,
+              address: recipientAddress || "",
               amount: (parseFloat(amount) * 1e9).toString(), // nanoTON
             },
           ],
@@ -95,7 +95,7 @@ const SendTon: React.FC<SendProps> = ({
           validUntil: Math.floor(Date.now() / 1000) + 600,
           messages: [
             {
-              address: recipientAddress,
+              address: recipientAddress || "",
               amount,
               payload: `EQCK1XtDYNvczPxjCUk9cmyx7XychloCyYN3mkE5XA6i74Bx`,
             },

@@ -3,7 +3,12 @@ import '../styles/style.scss'
 import '../styles/header.scss'
 import Head from 'next/head'
 
-function MyApp({ Component, pageProps }) {
+interface MyAppProps {
+  Component: React.ComponentType,
+  pageProps: Record<string, any>
+}
+
+function MyApp({ Component, pageProps }: MyAppProps) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
   return (

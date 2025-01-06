@@ -33,7 +33,7 @@ const SendSolana: React.FC<SendProps> = ({
   handleNotificationOpen,
   onTransactionStatusSOLANA
 }) => {
-  const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT);
+  const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || '');
   const recipientAddress = process.env.NEXT_PUBLIC_RECIPIENT_SOLANA;
 
   const { connection } = useConnection();
@@ -72,6 +72,11 @@ const SendSolana: React.FC<SendProps> = ({
       })
   }
   const upBalanceSOL = async () => {
+    if (!publicKey) {
+      console.error('Public key is null');
+      return;
+  }
+
     try {
       const tempBalance = await connection.getBalance(publicKey);
       setBalanceSol(tempBalance / LAMPORTS_PER_SOL);
@@ -90,6 +95,10 @@ const SendSolana: React.FC<SendProps> = ({
     try {
       let transaction = new Transaction();
       setLoading(true)
+      if (!recipientAddress) {
+        return;
+    }
+
       if (detectSolanaNetwork()) {
         if (tokenType === 'SOL') {
           // transferActivation('solana')

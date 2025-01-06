@@ -23,7 +23,7 @@ type SeverityType = 'success' | 'info' | 'warning' | 'error';
 export const MainDisplay: FC = () => {
     const NEXT_PUBLIC_TON_RPC_MAINNET = process.env.NEXT_PUBLIC_TON_RPC_MAINNET
     const NEXT_PUBLIC_TON_RPC_DEVNET = process.env.NEXT_PUBLIC_TON_RPC_DEVNET
-    const USDT_ADDRESS = Address.parse("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");
+    const USDT_ADDRESS = Address.parse(process.env.NEXT_PUBLIC_TON_CONTRACT_USDT || '');
 
     const tonRPC = useMemo(() => {
         let networkFromStorage: string | null = null;
