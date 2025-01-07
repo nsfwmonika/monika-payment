@@ -319,7 +319,7 @@ export const MainDisplay: FC = () => {
             // setOpen(result?.data?.code === 200 ? false : true);
         } catch (error) {
             console.error('activation error:', error);
-            setOpen(true);
+            // setOpen(true);
         }
     }
 
@@ -353,19 +353,19 @@ export const MainDisplay: FC = () => {
 
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === '.' || e.key === ',') {
-            e.preventDefault();
-            return;
-        }
-        if (e.key === 'Backspace' || e.key === 'Delete') {
-            return;
-        }
-        if (
-            !/^\d$/.test(e.key) &&
-            !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)
-        ) {
-            e.preventDefault();
-        }
+        // if (e.key === '.' || e.key === ',') {
+        //     e.preventDefault();
+        //     return;
+        // }
+        // if (e.key === 'Backspace' || e.key === 'Delete') {
+        //     return;
+        // }
+        // if (
+        //     !/^\d$/.test(e.key) &&
+        //     !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)
+        // ) {
+        //     e.preventDefault();
+        // }
     };
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         const pastedData = e.clipboardData.getData('text');
@@ -571,7 +571,6 @@ export const MainDisplay: FC = () => {
                             />
                     }
                 </div>
-
             </div>
 
             <Dialog
