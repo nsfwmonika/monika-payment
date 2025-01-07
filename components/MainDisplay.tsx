@@ -99,6 +99,7 @@ export const MainDisplay: FC = () => {
     const [amount, setAmount] = useState<string>('');
     const [customAmount, setCustomAmount] = useState<string>('50');
 
+    const [tonUserId, setTonUserId] = useState('');
     const [tokenType, setTokenType] = useState('');
     const [userFriendlyAddress, setUserFriendlyAddress] = useState("");
 
@@ -115,9 +116,9 @@ export const MainDisplay: FC = () => {
     const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
-        console.log('userInfo-1--');
-
+        console.log('userInfo-1--', window.location.href);
         try {
+
             const params = new URLSearchParams(window.location.href)
             const userEncoded = params.get('user');
             const userDecoded = decodeURIComponent(userEncoded || '');
@@ -324,7 +325,7 @@ export const MainDisplay: FC = () => {
                 chain,
                 walletAddress: chain === 'ton' ? userFriendlyAddress : walletAddress,
                 usd,
-                userId: ""
+                userId:tonUserId
             });
             setSvgAnimation(false)
             setLoadingSol(false)
