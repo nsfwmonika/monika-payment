@@ -115,6 +115,19 @@ export const MainDisplay: FC = () => {
     const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
+        console.log('userInfo-1--');
+
+        try {
+            const params = new URLSearchParams(window.location.href)
+            const userEncoded = params.get('user');
+            const userDecoded = decodeURIComponent(userEncoded || '');
+            const userObject = JSON.parse(userDecoded);
+            console.log('userInfo-2--', userObject);
+
+        } catch (error) {
+            console.log('error---userInfo---', error)
+        }
+
         const initializeTokenType = () => {
             try {
                 const currentPath = window.location.href;
@@ -122,20 +135,13 @@ export const MainDisplay: FC = () => {
                     setTokenType("TON");
                     setChainType("ton");
                     setAmount("1");
-                    handleUnitSelect("50U", "ton");
-
-                    try {
-                        const params = new URLSearchParams(window.location.href)
-                        const userEncoded = params.get('user');
-                        const userDecoded = decodeURIComponent(userEncoded || '');
-                        const userObject = JSON.parse(userDecoded);
-                        console.log('userInfo---', userObject);
-            
-                    } catch (error) {
-                        console.log('error---userInfo---', error)
-                    }
 
                     
+
+
+                    handleUnitSelect("50U", "ton");
+
+
                 } else {
                     setTokenType("SOL");
                     setChainType("solana");
