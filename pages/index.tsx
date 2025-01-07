@@ -4,7 +4,7 @@ import { Header } from '../components/Header'
 import { MainDisplay } from '../components/MainDisplay'
 import Head from 'next/head'
 import { THEME, TonConnectUIProvider } from "@tonconnect/ui-react";
-// import RemoteJS from 'remotejs';
+import RemoteJS from 'remotejs';
 
 const Home: NextPage = (props) => {
   return (

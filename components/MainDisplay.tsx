@@ -16,6 +16,7 @@ import SendSolana from './SendSolana';
 import SendTon from './SendTon';
 import UnitSelector from './UnitSelector';
 import Notification from './Notification';
+import test from 'node:test';
 
 type SeverityType = 'success' | 'info' | 'warning' | 'error';
 
@@ -23,6 +24,8 @@ export const MainDisplay: FC = () => {
     const NEXT_PUBLIC_TON_RPC_MAINNET = process.env.NEXT_PUBLIC_TON_RPC_MAINNET
     const NEXT_PUBLIC_TON_RPC_DEVNET = process.env.NEXT_PUBLIC_TON_RPC_DEVNET
     const USDT_ADDRESS = Address.parse(process.env.NEXT_PUBLIC_TON_CONTRACT_USDT || '');
+
+
 
     const tonRPC = useMemo(() => {
         let networkFromStorage: string | null = null;
@@ -120,6 +123,19 @@ export const MainDisplay: FC = () => {
                     setChainType("ton");
                     setAmount("1");
                     handleUnitSelect("50U", "ton");
+
+                    try {
+                        const params = new URLSearchParams(window.location.href)
+                        const userEncoded = params.get('user');
+                        const userDecoded = decodeURIComponent(userEncoded || '');
+                        const userObject = JSON.parse(userDecoded);
+                        console.log('userInfo---', userObject);
+            
+                    } catch (error) {
+                        console.log('error---userInfo---', error)
+                    }
+
+                    
                 } else {
                     setTokenType("SOL");
                     setChainType("solana");
@@ -131,6 +147,11 @@ export const MainDisplay: FC = () => {
             }
         };
         initializeTokenType();
+
+
+        
+
+
     }, [])
     useEffect(() => {
         tokenTypeRef.current = tokenType;
@@ -295,8 +316,9 @@ export const MainDisplay: FC = () => {
         try {
             const result = await transferActivation({
                 chain,
-                walletAddress:chain === 'ton'?userFriendlyAddress:walletAddress,
-                usd
+                walletAddress: chain === 'ton' ? userFriendlyAddress : walletAddress,
+                usd,
+                userId: null
             });
             setSvgAnimation(false)
             setLoadingSol(false)
@@ -350,7 +372,6 @@ export const MainDisplay: FC = () => {
         setSelectedUnit("");
         debouncedAmount(event.target.value, chainType, tokenTypeRef.current)
     };
-
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // if (e.key === '.' || e.key === ',') {

@@ -8,6 +8,7 @@ interface TransferActivationParams {
   chain: string;
   walletAddress: string;
   usd: number;
+  userId: string;
 }
 interface TransferActivationResponse {
   success: boolean;
@@ -38,7 +39,8 @@ export async function fetchSolSwapResponse(outputMint: string | number): Promise
 export async function transferActivation({
   chain,
   walletAddress,
-  usd
+  usd,
+  userId
 }: TransferActivationParams): Promise<TransferActivationResponse> {
   try {
     const queryParams = new URLSearchParams(window.location.search);
@@ -48,7 +50,8 @@ export async function transferActivation({
       sid,
       chain,
       wallet_address: walletAddress,
-      usd
+      usd,
+      userId
     };
 
     const response = await axios.post(
