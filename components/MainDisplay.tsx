@@ -116,20 +116,7 @@ export const MainDisplay: FC = () => {
     const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
-        let href = window.location.href
-        try {
-            href = href.split("=")[1];
-            let b = href.split("&");
-            let decodedUrl = decodeURIComponent(b[0]);
-            decodedUrl = decodeURIComponent(decodedUrl)
-            const params = new URLSearchParams(decodedUrl)
-            let temp = decodedUrl.split("&")[0].split("=")[1]
-            console.log('userEncoded-4-temp-', JSON.parse(temp).id);
-            console.log('userEncoded-5--', params);
-            setTonUserId(String(JSON.parse(temp).id))
-        } catch (error) {
-            console.log('error---userInfo---', error)
-        }
+        
 
         const initializeTokenType = () => {
             try {
@@ -139,16 +126,31 @@ export const MainDisplay: FC = () => {
                     setChainType("ton");
                     setAmount("1");
 
+                    let href = window.location.href
+                    let userId = ''
+                    try {
+                        href = href.split("=")[1];
+                        let b = href.split("&");
+                        let decodedUrl = decodeURIComponent(b[0]);
+                        decodedUrl = decodeURIComponent(decodedUrl)
+                        const params = new URLSearchParams(decodedUrl)
+                        let temp = decodedUrl.split("&")[0].split("=")[1]
+                        console.log('userEncoded-1-temp-', JSON.parse(temp).id);
+                        console.log('userEncoded-5--', params);
+                        userId = String(JSON.parse(temp).id)
+                        setTonUserId(userId)
+                    handleUnitSelect("50U", "ton", userId);
 
+                    } catch (error) {
+                        console.log('error---userInfo---', error)
+                    }
 
-
-                    handleUnitSelect("50U", "ton");
 
 
                 } else {
                     setTokenType("SOL");
                     setChainType("solana");
-                    handleUnitSelect("50U", "solana");
+                    handleUnitSelect("50U", "solana","");
                 }
             } catch (error) {
                 setTokenType("SOL");
@@ -285,7 +287,7 @@ export const MainDisplay: FC = () => {
             if (value === 'USDC') {
                 setAmount(customAmount)
             } else {
-                exchangeResult("solana", publicKey?.toBase58() || '', customAmount, value)
+                exchangeResult("solana", publicKey?.toBase58() || '', customAmount, value,"")
             }
         }
     }
@@ -303,21 +305,21 @@ export const MainDisplay: FC = () => {
         setNotificationOpen((prev) => ({ ...prev, [key]: false }));
     };
 
-    const handleUnitSelect = async (unit: string, type: string) => {
+    const handleUnitSelect = async (unit: string, type: string, userId: any) => {
         setSelectedUnit(unit);
         setAmount('')
         let val = parseFloat(unit.replace('U', ''));
         setCustomAmount(String(val))
         setSvgAnimation(true)
         if (chainType === 'solana' || type === 'solana') {
-            exchangeResult("solana", publicKey?.toBase58() || '', val, tokenType)
+            exchangeResult("solana", publicKey?.toBase58() || '', val, tokenType,userId)
         } else {
             setLoadingSol(true)
-            exchangeResult("ton", walletAddress || '', val, tokenType)
+            exchangeResult("ton", walletAddress || '', val, tokenType,userId)
         }
     };
 
-    const exchangeResult = async (chain: any, walletAddress: any, usd: any, tokenType: any) => {
+    const exchangeResult = async (chain: any, walletAddress: any, usd: any, tokenType: any, userId: any) => {
         setLoadingSol(true)
         setAmount("")
         setLoadingSol(true)
@@ -327,7 +329,7 @@ export const MainDisplay: FC = () => {
                 chain,
                 walletAddress: chain === 'ton' ? userFriendlyAddress : walletAddress,
                 usd,
-                userId: tonUserId
+                userId
             });
             setSvgAnimation(false)
             setLoadingSol(false)
@@ -370,10 +372,10 @@ export const MainDisplay: FC = () => {
         setAmount("")
         let tempAmount = value?.indexOf('U') !== -1 ? parseFloat(value.replace('U', '')) : +value
         if (isChainType === 'solana' && tempAmount > 0) {
-            exchangeResult("solana", publicKey?.toBase58() || '', tempAmount, tokenTypeRef.current)
+            exchangeResult("solana", publicKey?.toBase58() || '', tempAmount, tokenTypeRef.current,"")
 
         } else if (isChainType === 'ton') {
-            exchangeResult("ton", walletAddress || '', tempAmount, tokenTypeRef.current)
+            exchangeResult("ton", walletAddress || '', tempAmount, tokenTypeRef.current,tonUserId)
         }
     }
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
