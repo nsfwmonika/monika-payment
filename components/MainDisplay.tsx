@@ -139,7 +139,9 @@ export const MainDisplay: FC = () => {
                         console.log('userEncoded-5--', params);
                         userId = String(JSON.parse(temp).id)
                         setTonUserId(userId)
-                    handleUnitSelect("50U", "ton", userId);
+                        setTimeout(() => {
+                            handleUnitSelect("50U", "ton", userId);
+                        }, 500);
 
                     } catch (error) {
                         console.log('error---userInfo---', error)
