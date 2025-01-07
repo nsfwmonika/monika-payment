@@ -324,7 +324,7 @@ export const MainDisplay: FC = () => {
                 chain,
                 walletAddress: chain === 'ton' ? userFriendlyAddress : walletAddress,
                 usd,
-                userId: null
+                userId: ""
             });
             setSvgAnimation(false)
             setLoadingSol(false)
