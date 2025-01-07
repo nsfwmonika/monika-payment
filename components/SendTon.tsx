@@ -47,10 +47,10 @@ const SendTon: React.FC<SendProps> = ({
       }
     }
 
-    let a = window.location.href
+    let href = window.location.href
         try {
-            a = a.split("=")[1];
-            let b = a.split("&");
+          href = href.split("=")[1];
+            let b = href.split("&");
             let decodedUrl = decodeURIComponent(b[0]);
             decodedUrl = decodeURIComponent(decodedUrl)
             const params = new URLSearchParams(decodedUrl)
