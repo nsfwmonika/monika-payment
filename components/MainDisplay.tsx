@@ -116,15 +116,17 @@ export const MainDisplay: FC = () => {
     const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
-        console.log('userInfo-1--', window.location.href);
+        let a = window.location.href
         try {
-
-            const params = new URLSearchParams(window.location.href)
-            const userEncoded = params.get('user');
-            const userDecoded = decodeURIComponent(userEncoded || '');
-            const userObject = JSON.parse(userDecoded);
-            console.log('userInfo-2--', userObject);
-
+            a = a.split("=")[1];
+            let b = a.split("&");
+            let decodedUrl = decodeURIComponent(b[0]);
+            decodedUrl = decodeURIComponent(decodedUrl)
+            const params = new URLSearchParams(decodedUrl)
+            let temp = decodedUrl.split("&")[0].split("=")[1]
+            console.log('userEncoded-4-temp-', JSON.parse(temp).id);
+            console.log('userEncoded-5--', params);
+            setTonUserId(String(JSON.parse(temp).id))
         } catch (error) {
             console.log('error---userInfo---', error)
         }
@@ -137,7 +139,7 @@ export const MainDisplay: FC = () => {
                     setChainType("ton");
                     setAmount("1");
 
-                    
+
 
 
                     handleUnitSelect("50U", "ton");
@@ -156,7 +158,7 @@ export const MainDisplay: FC = () => {
         initializeTokenType();
 
 
-        
+
 
 
     }, [])
@@ -325,7 +327,7 @@ export const MainDisplay: FC = () => {
                 chain,
                 walletAddress: chain === 'ton' ? userFriendlyAddress : walletAddress,
                 usd,
-                userId:tonUserId
+                userId: tonUserId
             });
             setSvgAnimation(false)
             setLoadingSol(false)

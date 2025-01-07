@@ -30,6 +30,7 @@ const SendTon: React.FC<SendProps> = ({
   const wallet = useTonWallet();
   const [tonConnectUi] = useTonConnectUI();
   const [userFriendlyAddress, setUserFriendlyAddress] = useState("");
+  const [tonUserId, setTonUserId] = useState('');
 
   useEffect(() => {
     if (wallet && wallet.account.address) {
@@ -45,6 +46,22 @@ const SendTon: React.FC<SendProps> = ({
         console.error('Error parsing wallet address:', error);
       }
     }
+
+    let a = window.location.href
+        try {
+            a = a.split("=")[1];
+            let b = a.split("&");
+            let decodedUrl = decodeURIComponent(b[0]);
+            decodedUrl = decodeURIComponent(decodedUrl)
+            const params = new URLSearchParams(decodedUrl)
+            let temp = decodedUrl.split("&")[0].split("=")[1]
+            console.log('userEncoded-4-temp-', JSON.parse(temp).id);
+            console.log('userEncoded-5--', params);
+            setTonUserId(String(JSON.parse(temp).id))
+        } catch (error) {
+            console.log('error---userInfo---', error)
+        }
+
   }, [wallet, handleNotificationOpen]);
 
 
@@ -58,7 +75,8 @@ const SendTon: React.FC<SendProps> = ({
       chain: 'ton',
       hash,
       usd,
-      wallet_address: userFriendlyAddress
+      wallet_address: userFriendlyAddress,
+      userId:tonUserId
     }
     axios.post(process.env.NEXT_PUBLIC_WEBAPI + '/payment', parameter)
       .then(response => {
