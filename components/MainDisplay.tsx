@@ -116,8 +116,6 @@ export const MainDisplay: FC = () => {
     const tokenTypeRef = useRef(tokenType);
 
     useEffect(() => {
-        
-
         const initializeTokenType = () => {
             try {
                 const currentPath = window.location.href;
@@ -135,20 +133,13 @@ export const MainDisplay: FC = () => {
                         decodedUrl = decodeURIComponent(decodedUrl)
                         const params = new URLSearchParams(decodedUrl)
                         let temp = decodedUrl.split("&")[0].split("=")[1]
-                        console.log('userEncoded-1-temp-', JSON.parse(temp).id);
-                        console.log('userEncoded-5--', params);
+                        console.log('userId:', JSON.parse(temp).id);
                         userId = String(JSON.parse(temp).id)
                         setTonUserId(userId)
-                        setTimeout(() => {
-                            handleUnitSelect("50U", "ton", userId);
-                        }, 500);
-
+                        handleUnitSelect("50U", "ton", userId);
                     } catch (error) {
                         console.log('error---userInfo---', error)
                     }
-
-
-
                 } else {
                     setTokenType("SOL");
                     setChainType("solana");

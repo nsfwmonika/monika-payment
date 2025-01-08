@@ -55,16 +55,12 @@ const SendTon: React.FC<SendProps> = ({
             decodedUrl = decodeURIComponent(decodedUrl)
             const params = new URLSearchParams(decodedUrl)
             let temp = decodedUrl.split("&")[0].split("=")[1]
-            console.log('userEncoded-4-temp-', JSON.parse(temp).id);
-            console.log('userEncoded-5--', params);
             setTonUserId(String(JSON.parse(temp).id))
         } catch (error) {
             console.log('error---userInfo---', error)
         }
 
   }, [wallet, handleNotificationOpen]);
-
-
 
   const transferSuccessful = (hash: string, usd: number | string) => {
     const queryParams = new URLSearchParams(window.location.search);
